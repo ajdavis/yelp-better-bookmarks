@@ -49,7 +49,6 @@ class YelpSpider(Spider):
         safe_set(item, 'category', response,
                  '.category-str-list a::text')
 
-        item['rating'] = ''
         rating = safe_get(response,
                           '.biz-rating img::attr(alt)')
         if rating:
@@ -58,7 +57,6 @@ class YelpSpider(Spider):
             except Exception:
                 logging.exception("extracting rating from '%s'" % rating)
 
-        item['price_range'] = ''
         price_range = safe_get(response,
                                '.business-attribute.price-range::text')
 
@@ -69,7 +67,6 @@ class YelpSpider(Spider):
                 logging.exception("extracting price range from '%s'"
                                   % price_range)
 
-        item['latitude'] = item['longitude'] = ''
         map_json = safe_get(response, '.lightbox-map::attr(data-map-state)')
         if map_json:
             try:
