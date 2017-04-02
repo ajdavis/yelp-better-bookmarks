@@ -9,7 +9,7 @@ Requires Python 3.6 or later.
 Run:
 
 ```
-scrapy crawl yelp -o scraped_yelp.json -t json
+scrapy crawl yelp -o web/yelp-bookmarks.json -t json
 ```
 
 Credits

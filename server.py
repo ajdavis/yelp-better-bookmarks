@@ -5,7 +5,7 @@ import gmplot
 
 gmap = gmplot.GoogleMapPlotter(37.428, -122.145, 16)
 
-for biz in json.load(open('scraped_yelp.json', encoding='utf-8')):
+for biz in json.load(open('web/yelp-bookmarks.json', encoding='utf-8')):
     gmap.marker(lat=biz['latitude'], lng=biz['longitude'],
                 color='cornflowerblue', title=biz['name'].encode('utf-8'))
 # gmap.plot(latitudes, longitudes, 'cornflowerblue', edge_width=10)
