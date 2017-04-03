@@ -169,8 +169,21 @@ window.onload = function () {
           imageSizes: [34],
           averageCenter: true,
           gridSize: 30,
-          minimumClusterSize: 10});
+          minimumClusterSize: 10
+        });
     });
+
+    $('#my-location').click(function () {
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(function (position) {
+          map.setCenter(new google.maps.LatLng(
+            position.coords.latitude,
+            position.coords.longitude));
+        });
+      } else {
+        $('#location-disabled').modal('show');
+      }
+    })
   }
 
   initialize();
