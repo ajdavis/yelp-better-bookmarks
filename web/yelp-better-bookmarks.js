@@ -194,9 +194,23 @@ window.onload = function () {
         });
     });
 
-    $('#my-location').click(function () {
+    var locationButton = $('#my-location');
+    locationButton.click(function () {
       if ("geolocation" in navigator) {
+        var pulsating = true;
+        function pulsate() {
+          if (!pulsating) {
+            return;
+          }
+
+          locationButton.animate({opacity: 0.2}, 500, 'linear').animate({opacity: 1}, 500, 'linear', pulsate);
+        }
+
+        pulsate();
+
         navigator.geolocation.getCurrentPosition(function (position) {
+          locationButton.stop();
+          pulsating = false;
           map.setCenter(new google.maps.LatLng(
             position.coords.latitude,
             position.coords.longitude));
