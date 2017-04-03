@@ -78,6 +78,7 @@ window.onload = function () {
         + starRating(bizinfo['rating']) + ' '
         + (bizinfo['price_range'] ? bizinfo['price_range'] : ' ') + ' '
         + categoriesText(bizinfo['categories'])
+        + '<i class="goto-yelp material-icons" title="Open in Yelp" yelp-url="' + bizinfo['url'] + '">open_in_new</i>'
         + '</a>';
     }
 
@@ -95,6 +96,10 @@ window.onload = function () {
         }
       }
       return false;
+    });
+
+    bookmarks.find('.goto-yelp').click(function () {
+      window.open($(this).attr('yelp-url'), "_blank");
     });
 
     updateActiveBookmark();
@@ -174,8 +179,8 @@ window.onload = function () {
         var lng = parseFloat(data[i]["longitude"]);
         var point = new google.maps.LatLng(lat, lng);
         var name = data[i]["name"];
-        var html = "<b>" + name + "<\/b><p>";
         var bizid = data[i]["bizid"];
+        var html ='<a href="' + data[i]['url'] + '" target="_blank"><b>' + name + '<\/b></a>';
         createMarker(point, name, html, bizid);
       }
 

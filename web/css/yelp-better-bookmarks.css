@@ -50,3 +50,9 @@ html, body {
   display: block;
   z-index: 0;
 }
+
+.material-icons.goto-yelp {
+  font-size: 18px;
+  display: inline-block;
+  float: right;
+}
