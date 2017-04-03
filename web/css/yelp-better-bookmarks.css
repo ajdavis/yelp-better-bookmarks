@@ -5,13 +5,22 @@ html, body {
   padding: 0;
 }
 
-.navbar-fixed-top {
-  margin-bottom: 0;
-}
-
 .list-group-item {
   white-space: nowrap;
   overflow: hidden;
+}
+
+.navbar-right {
+  padding-right: 15px;
+}
+
+#navbar {
+  padding: 5px;
+}
+
+#search, #my-location, #about {
+  padding: 5px;
+  margin: inherit;
 }
 
 #sidebar, #map_canvas {

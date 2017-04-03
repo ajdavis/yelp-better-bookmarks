@@ -206,7 +206,11 @@ window.onload = function () {
       }
 
       return false;
-    })
+    });
+
+    $('#bookmarks').sieve({
+      itemSelector: "a.list-group-item",
+      searchInput: $("#search").find("input")});
   }
 
   initialize();
