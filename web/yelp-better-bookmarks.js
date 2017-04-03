@@ -131,10 +131,12 @@ window.onload = function () {
 
       if (activeBookmark.length) {
         activeBookmark.addClass('active');
+        var sidebar = $('#sidebar');
         var activeBookmarkTop = activeBookmark.position().top;
         if (activeBookmarkTop > window.innerHeight || activeBookmarkTop < 0) {
+          var scrollTop = sidebar.scrollTop() + activeBookmarkTop - window.innerHeight / 2;
           $('#sidebar').animate(
-            {scrollTop: activeBookmarkTop - window.innerHeight / 2},
+            {scrollTop: scrollTop},
             'fast');
         }
       }
