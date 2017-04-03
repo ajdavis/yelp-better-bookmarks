@@ -1,5 +1,6 @@
 window.onload = function () {
   var gmarkers = [];
+  var activeBizid = null;
   var map = null;
   var data = null;
   var infowindow = new google.maps.InfoWindow(
@@ -39,18 +40,9 @@ window.onload = function () {
     google.maps.event.addListener(marker, 'click', function () {
       infowindow.setContent(contentString);
       infowindow.open(map, marker);
+      activeBizid = marker.bizid;
+      updateActiveBookmark();
     });
-  }
-
-  function myclick(bizid) {
-    // TODO: efficiently
-    for (var i = 0; i < gmarkers.length; i++) {
-      var gm = gmarkers[i];
-      if (gm.bizid === bizid) {
-        google.maps.event.trigger(gmarkers[i], "click");
-        return;
-      }
-    }
   }
 
   // == rebuilds the sidebar to match the markers currently displayed ==
@@ -93,10 +85,23 @@ window.onload = function () {
         + '</a>';
     }
 
-    $("#bookmarks").html(html).find('a').click(function () {
-      myclick($(this).attr('bizid'));
+    var bookmarks = $("#bookmarks").html(html).find('a');
+    bookmarks.click(function () {
+      var a = $(this);
+      var bizid = a.attr('bizid');
+
+      // TODO: efficiently
+      for (var i = 0; i < gmarkers.length; i++) {
+        var gm = gmarkers[i];
+        if (gm.bizid === bizid) {
+          google.maps.event.trigger(gmarkers[i], "click");
+          break;
+        }
+      }
     });
-  }
+
+    updateActiveBookmark();
+  } // makeSidebar
 
   function starRating(rating) {
     if (!rating) {
@@ -119,6 +124,16 @@ window.onload = function () {
     return cats.join(', ');
   }
 
+  function updateActiveBookmark() {
+    var bookmarks = $("#bookmarks").find('a');
+    bookmarks.removeClass('active');
+    if (activeBizid) {
+      bookmarks.filter(function () {
+        return $(this).attr('bizid') === activeBizid;
+      }).addClass('active');
+    }
+  }
+
   function initialize() {
     var myOptions = {
       zoom: 9,
@@ -130,6 +145,8 @@ window.onload = function () {
 
     google.maps.event.addListener(map, 'click', function () {
       infowindow.close();
+      activeBizid = null;
+      updateActiveBookmark();
     });
 
     // Fired when the map becomes idle after panning or zooming.
