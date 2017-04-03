@@ -8,6 +8,7 @@ window.onload = function () {
       size: new google.maps.Size(800, 400)
     });
 
+  var markerClusterer = null;
   var gicon = new google.maps.MarkerImage(
     "imgs/marker_green.png",
     new google.maps.Size(20, 34),  // size
@@ -15,12 +16,6 @@ window.onload = function () {
     new google.maps.Point(9, 34)   // anchor offset
   );
 
-  var iconShadow = new google.maps.MarkerImage('http://www.google.com/mapfiles/shadow50.png',
-    // The shadow image is larger in the horizontal dimension
-    // while the position and offset are the same as for the main image.
-    new google.maps.Size(37, 34),
-    new google.maps.Point(0, 0),
-    new google.maps.Point(9, 34));
 
   // A function to create the marker and set up the event window
   function createMarker(latlng, name, html, bizid) {
@@ -28,7 +23,6 @@ window.onload = function () {
     var marker = new google.maps.Marker({
       position: latlng,
       icon: gicon,
-      shadow: iconShadow,
       map: map,
       title: name,
       zIndex: Math.round(latlng.lat() * -100000) << 5
@@ -168,6 +162,14 @@ window.onload = function () {
         var bizid = data[i]["bizid"];
         createMarker(point, name, html, bizid);
       }
+
+      markerClusterer = new MarkerClusterer(
+        map, gmarkers, {
+          imagePath: 'imgs/cluster',
+          imageSizes: [34],
+          averageCenter: true,
+          gridSize: 30,
+          minimumClusterSize: 10});
     });
   }
 
