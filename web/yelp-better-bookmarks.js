@@ -1,5 +1,6 @@
 window.onload = function () {
   var gmarkers = [];
+  var bizid2gmarker = {};
   var activeBizid = null;
   var map = null;
   var data = null;
@@ -31,6 +32,7 @@ window.onload = function () {
     marker.myname = name;
     marker.bizid = bizid;
     gmarkers.push(marker);
+    bizid2gmarker[bizid] = marker;
 
     google.maps.event.addListener(marker, 'click', function () {
       infowindow.setContent(contentString);
@@ -87,14 +89,9 @@ window.onload = function () {
       var a = $(this);
       var bizid = a.attr('bizid');
 
-      // TODO: efficiently
-      for (var i = 0; i < gmarkers.length; i++) {
-        var gm = gmarkers[i];
-        if (gm.bizid === bizid) {
-          google.maps.event.trigger(gmarkers[i], "click");
-          break;
-        }
-      }
+      var gm = bizid2gmarker[bizid];
+      google.maps.event.trigger(gm, "click");
+
       return false;
     });
 
@@ -198,6 +195,7 @@ window.onload = function () {
     locationButton.click(function () {
       if ("geolocation" in navigator) {
         var pulsating = true;
+
         function pulsate() {
           if (!pulsating) {
             return;
