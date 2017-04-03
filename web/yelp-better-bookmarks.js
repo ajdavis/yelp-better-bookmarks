@@ -180,7 +180,7 @@ window.onload = function () {
         var point = new google.maps.LatLng(lat, lng);
         var name = data[i]["name"];
         var bizid = data[i]["bizid"];
-        var html ='<a href="' + data[i]['url'] + '" target="_blank"><b>' + name + '<\/b></a>';
+        var html = '<a href="' + data[i]['url'] + '" target="_blank"><b>' + name + '<\/b></a>';
         createMarker(point, name, html, bizid);
       }
 
@@ -210,7 +210,8 @@ window.onload = function () {
 
     $('#bookmarks').sieve({
       itemSelector: "a.list-group-item",
-      searchInput: $("#search").find("input")});
+      searchInput: $("#search").find("input")
+    });
   }
 
   initialize();
