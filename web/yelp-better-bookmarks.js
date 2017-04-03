@@ -5,7 +5,8 @@ window.onload = function () {
   var data = null;
   var infowindow = new google.maps.InfoWindow(
     {
-      size: new google.maps.Size(800, 400)
+      size: new google.maps.Size(800, 400),
+      disableAutoPan: true
     });
 
   var markerClusterer = null;
@@ -122,9 +123,19 @@ window.onload = function () {
     var bookmarks = $("#bookmarks").find('a');
     bookmarks.removeClass('active');
     if (activeBizid) {
-      bookmarks.filter(function () {
+      var activeBookmark = bookmarks.filter(function () {
         return $(this).attr('bizid') === activeBizid;
-      }).addClass('active');
+      });
+
+      if (activeBookmark.length) {
+        activeBookmark.addClass('active');
+        var activeBookmarkTop = activeBookmark.position().top;
+        if (activeBookmarkTop > window.innerHeight || activeBookmarkTop < 0) {
+          $('#sidebar').animate(
+            {scrollTop: activeBookmarkTop - window.innerHeight / 2},
+            'fast');
+        }
+      }
     }
   }
 
