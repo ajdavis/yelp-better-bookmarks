@@ -1,22 +1,17 @@
 window.onload = function () {
   var gmarkers = [];
-  var gicons = [];
   var map = null;
   var infowindow = new google.maps.InfoWindow(
     {
       size: new google.maps.Size(800, 400)
     });
 
-  var colors = ["blue", "green", "red", "yellow"];
-  var categories = {}; // name -> color
-
-  for (var i = 0; i < colors.length; i++) {
-    gicons[colors[i]] = new google.maps.MarkerImage(
-      "marker_" + colors[i] + ".png",
-      new google.maps.Size(20, 34),  // size
-      new google.maps.Point(0, 0),   // origin
-      new google.maps.Point(9, 34)); // anchor offset
-  }
+  var gicon = new google.maps.MarkerImage(
+    "imgs/marker_green.png",
+    new google.maps.Size(20, 34),  // size
+    new google.maps.Point(0, 0),   // origin
+    new google.maps.Point(9, 34)   // anchor offset
+  );
 
   var iconShadow = new google.maps.MarkerImage('http://www.google.com/mapfiles/shadow50.png',
     // The shadow image is larger in the horizontal dimension
@@ -25,42 +20,20 @@ window.onload = function () {
     new google.maps.Point(0, 0),
     new google.maps.Point(9, 34));
 
-  function getMarkerImage(iconColor) {
-    if ((typeof(iconColor) === "undefined") || (iconColor === null)) {
-      iconColor = "red";
-    }
-    if (!gicons[iconColor]) {
-      gicons[iconColor] = new google.maps.MarkerImage("mapIcons/marker_" + iconColor + ".png",
-        new google.maps.Size(20, 34),   // size
-        new google.maps.Point(0, 0),    // origin
-        new google.maps.Point(9, 34));  // anchor offset
-    }
-
-    return gicons[iconColor];
-  }
-
-  function category2color(category) {
-    if (!categories[category] === undefined) {
-      return categories[category];
-    }
-
-    return "red";
-  }
-
   // A function to create the marker and set up the event window
-  function createMarker(latlng, name, html, category) {
+  function createMarker(latlng, name, html, bizid, categories) {
     var contentString = html;
     var marker = new google.maps.Marker({
       position: latlng,
-      icon: gicons[category],
+      icon: gicon,
       shadow: iconShadow,
       map: map,
       title: name,
       zIndex: Math.round(latlng.lat() * -100000) << 5
     });
-    // === Store the category and name info as a marker properties ===
-    marker.mycategory = category;
     marker.myname = name;
+    marker.bizid = bizid;
+    marker.mycategories = categories;
     gmarkers.push(marker);
 
     google.maps.event.addListener(marker, 'click', function () {
@@ -69,96 +42,78 @@ window.onload = function () {
     });
   }
 
-  // == shows all markers of a particular category, and ensures the checkbox is checked ==
-  function show(category) {
+  function myclick(bizid) {
+    // TODO: efficiently
     for (var i = 0; i < gmarkers.length; i++) {
-      if (gmarkers[i].mycategory === category) {
-        gmarkers[i].setVisible(true);
+      var gm = gmarkers[i];
+      if (gm.bizid === bizid) {
+        google.maps.event.trigger(gmarkers[i], "click");
+        return;
       }
     }
-    // == check the checkbox ==
-    document.getElementById(category + "box").checked = true;
-  }
-
-  // == hides all markers of a particular category, and ensures the checkbox is cleared ==
-  function hide(category) {
-    for (var i = 0; i < gmarkers.length; i++) {
-      if (gmarkers[i].mycategory === category) {
-        gmarkers[i].setVisible(false);
-      }
-    }
-    // == clear the checkbox ==
-    document.getElementById(category + "box").checked = false;
-    // == close the info window, in case its open on a marker that we just hid
-    infowindow.close();
-  }
-
-  // == a checkbox has been clicked ==
-  function boxclick(box, category) {
-    if (box.checked) {
-      show(category);
-    } else {
-      hide(category);
-    }
-    // == rebuild the side bar
-    makeSidebar();
-  }
-
-  function myclick(i) {
-    google.maps.event.trigger(gmarkers[i], "click");
   }
 
   // == rebuilds the sidebar to match the markers currently displayed ==
   function makeSidebar() {
+    var bounds = map.getBounds();
+    var distanceAndMarkers = [];
     var html = "";
+
     for (var i = 0; i < gmarkers.length; i++) {
-      if (gmarkers[i].getVisible()) {
-        html += '<a href="#" class="list-group-item" marker-id="' + i + '">' + gmarkers[i].myname + '<\/a>';
+      var gm = gmarkers[i];
+
+      if (bounds.contains(gm.getPosition())) {
+        var d = google.maps.geometry.spherical.computeDistanceBetween(
+          map.center, gm.getPosition());
+
+        distanceAndMarkers.push([d, gm]);
       }
     }
+
+    distanceAndMarkers.sort();
+
+    for (i = 0; i < distanceAndMarkers.length; i++) {
+      gm = distanceAndMarkers[i][1];
+      var bizid = gm.bizid;
+      html += '<a href="#" class="list-group-item" bizid="' + bizid + '">' + gm.myname + '<\/a>';
+    }
+
     $("#bookmarks").html(html).find('a').click(function () {
-      myclick(parseInt($(this).attr('marker-id')));
+      myclick($(this).attr('bizid'));
     });
   }
 
   function initialize() {
     var myOptions = {
-      zoom: 11,
-      center: new google.maps.LatLng(53.8363, -3.0377),
+      zoom: 9,
+      center: new google.maps.LatLng(51.76229204540854, -0.5259507324218515),
       mapTypeId: google.maps.MapTypeId.ROADMAP
     };
+
     map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
 
     google.maps.event.addListener(map, 'click', function () {
       infowindow.close();
     });
 
+    // Fired when the map becomes idle after panning or zooming.
+    google.maps.event.addListener(map, 'idle', function() {
+        makeSidebar();
+    });
+
     // Read the data
-    $.getJSON("yelp-bookmarks.json", function (markers) {
-      var colorIndex = 0;
-
-      // categories
-      for (var i = 0; i < markers.length; i++) {
-        var category = markers[i]["category"];
-        if (categories[category] === undefined) {
-          categories[category] = colors[colorIndex];
-          colorIndex = (colorIndex + 1) % colors.length;
-        }
-      }
-
+    $.getJSON("yelp-bookmarks.json", function (data) {
       // markers
-      for (i = 0; i < markers.length; i++) {
-        var lat = parseFloat(markers[i]["latitude"]);
-        var lng = parseFloat(markers[i]["longitude"]);
+      for (var i = 0; i < data.length; i++) {
+        var lat = parseFloat(data[i]["latitude"]);
+        var lng = parseFloat(data[i]["longitude"]);
         var point = new google.maps.LatLng(lat, lng);
-        var name = markers[i]["name"];
+        var name = data[i]["name"];
         var html = "<b>" + name + "<\/b><p>";
-        category = markers[i]["category"];
-        // create the marker
-        createMarker(point, name, html, category);
+        var bizid = data[i]["biz_id"];
+        var cats = data[i]["categories"];
+        createMarker(point, name, html, bizid, cats);
       }
-      // == create the initial sidebar ==
-      makeSidebar();
     });
   }
 
