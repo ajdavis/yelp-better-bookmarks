@@ -37,6 +37,7 @@ window.onload = function () {
       infowindow.open(map, marker);
       activeBizid = marker.bizid;
       updateActiveBookmark();
+      return false;
     });
   }
 
@@ -93,6 +94,7 @@ window.onload = function () {
           break;
         }
       }
+      return false;
     });
 
     updateActiveBookmark();
@@ -152,6 +154,7 @@ window.onload = function () {
       infowindow.close();
       activeBizid = null;
       updateActiveBookmark();
+      return false;
     });
 
     // Fired when the map becomes idle after panning or zooming.
@@ -194,6 +197,8 @@ window.onload = function () {
       } else {
         $('#location-disabled').modal('show');
       }
+
+      return false;
     })
   }
 
