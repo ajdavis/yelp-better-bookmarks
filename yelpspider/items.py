@@ -7,7 +7,7 @@ from scrapy.item import Field, Item
 
 
 class YelpspiderItem(Item):
-    biz_id = Field()
+    bizid = Field()
     name = Field()
     url = Field()
     categories = Field()

@@ -4,7 +4,6 @@ import logging
 from scrapy.spider import Spider, Request
 
 from yelpspider.itemloaders import YelpspiderItemLoader
-from yelpspider.items import YelpspiderItem
 
 
 def safe_get(el, selector):
@@ -45,7 +44,7 @@ class YelpSpider(Spider):
         """Parse business detail page"""
         l = YelpspiderItemLoader(response=response)
         l.add_value('url', response.url)
-        l.add_xpath('biz_id', '//meta[@name="yelp-biz-id"]/@content')
+        l.add_xpath('bizid', '//meta[@name="yelp-biz-id"]/@content')
 
         ldjson = json.loads(response.xpath(
             '//script[@type="application/ld+json"]/text()').extract()[0])
@@ -55,22 +54,19 @@ class YelpSpider(Spider):
         addr_info = ldjson.get('address', {})
         l.add_value('address', ', '.join(map(
             lambda x: addr_info.get(x) or '',
-            ['streetAddress', 'addressLocality', 'addressRegion'])))
+            ['streetAddress', 'addressLocality', 'addressRegion'])).strip(', '))
 
         rating = ldjson.get('aggregateRating', {}).get('ratingValue')
         if rating:
             try:
-                l.add_value('rating', float(rating))
+                l.add_value('rating', round(float(rating), 2))
             except Exception:
                 logging.exception("extracting rating from '%s'" % rating)
 
+        # This is series of local currency symbols like "$$".
         price_range = ldjson.get('priceRange')
         if price_range:
-            try:
-                l.add_value('price_range', price_range.count('$'))
-            except Exception:
-                logging.exception("extracting price range from '%s'"
-                                  % price_range)
+            l.add_value('price_range', ldjson['priceRange'])
 
         l.add_css('categories', '.category-str-list a::text', set)
 

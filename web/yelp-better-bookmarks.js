@@ -1,6 +1,7 @@
 window.onload = function () {
   var gmarkers = [];
   var map = null;
+  var data = null;
   var infowindow = new google.maps.InfoWindow(
     {
       size: new google.maps.Size(800, 400)
@@ -21,7 +22,7 @@ window.onload = function () {
     new google.maps.Point(9, 34));
 
   // A function to create the marker and set up the event window
-  function createMarker(latlng, name, html, bizid, categories) {
+  function createMarker(latlng, name, html, bizid) {
     var contentString = html;
     var marker = new google.maps.Marker({
       position: latlng,
@@ -33,7 +34,6 @@ window.onload = function () {
     });
     marker.myname = name;
     marker.bizid = bizid;
-    marker.mycategories = categories;
     gmarkers.push(marker);
 
     google.maps.event.addListener(marker, 'click', function () {
@@ -75,12 +75,48 @@ window.onload = function () {
     for (i = 0; i < distanceAndMarkers.length; i++) {
       gm = distanceAndMarkers[i][1];
       var bizid = gm.bizid;
-      html += '<a href="#" class="list-group-item" bizid="' + bizid + '">' + gm.myname + '<\/a>';
+      var bizinfo = null;
+      // TODO: efficiently
+      for (var j = 0; j < data.length; j++) {
+        if (data[j]['bizid'] === gm.bizid) {
+          bizinfo = data[j];
+          break;
+        }
+      }
+
+      html += '<a href="#" class="list-group-item" bizid="' + bizid + '">'
+        + '<strong>' + bizinfo['name'] + '</strong> '
+        + (bizinfo['address'] ? bizinfo['address'] : '') + '<br>'
+        + starRating(bizinfo['rating']) + ' '
+        + (bizinfo['price_range'] ? bizinfo['price_range'] : ' ') + ' '
+        + categoriesText(bizinfo['categories'])
+        + '</a>';
     }
 
     $("#bookmarks").html(html).find('a').click(function () {
       myclick($(this).attr('bizid'));
     });
+  }
+
+  function starRating(rating) {
+    if (!rating) {
+      return '';
+    }
+
+    var pct = 100 * rating / 5;
+
+    return '<div class="star-ratings" title="' + rating + ' stars">'
+      + '<div class="star-ratings-top" style="width: ' + pct + '%"><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span></div>'
+      + '<div class="star-ratings-bottom"><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span></div>'
+      + '</div>';
+  }
+
+  function categoriesText(cats) {
+    if (!cats) {
+      return '';
+    }
+
+    return cats.join(', ');
   }
 
   function initialize() {
@@ -97,12 +133,14 @@ window.onload = function () {
     });
 
     // Fired when the map becomes idle after panning or zooming.
-    google.maps.event.addListener(map, 'idle', function() {
-        makeSidebar();
+    google.maps.event.addListener(map, 'idle', function () {
+      makeSidebar();
     });
 
     // Read the data
-    $.getJSON("yelp-bookmarks.json", function (data) {
+    $.getJSON("yelp-bookmarks.json", function (j) {
+      data = j;
+
       // markers
       for (var i = 0; i < data.length; i++) {
         var lat = parseFloat(data[i]["latitude"]);
@@ -110,9 +148,8 @@ window.onload = function () {
         var point = new google.maps.LatLng(lat, lng);
         var name = data[i]["name"];
         var html = "<b>" + name + "<\/b><p>";
-        var bizid = data[i]["biz_id"];
-        var cats = data[i]["categories"];
-        createMarker(point, name, html, bizid, cats);
+        var bizid = data[i]["bizid"];
+        createMarker(point, name, html, bizid);
       }
     });
   }
