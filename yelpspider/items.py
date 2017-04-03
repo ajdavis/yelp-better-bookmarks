@@ -7,10 +7,12 @@ from scrapy.item import Field, Item
 
 
 class YelpspiderItem(Item):
+    biz_id = Field()
     name = Field()
     url = Field()
-    category = Field()
+    categories = Field()
     rating = Field()
     price_range = Field()
+    address = Field()
     latitude = Field()
     longitude = Field()

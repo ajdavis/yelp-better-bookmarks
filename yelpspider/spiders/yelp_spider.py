@@ -3,6 +3,7 @@ import logging
 
 from scrapy.spider import Spider, Request
 
+from yelpspider.itemloaders import YelpspiderItemLoader
 from yelpspider.items import YelpspiderItem
 
 
@@ -42,39 +43,45 @@ class YelpSpider(Spider):
 
     def parse_biz_page(self, response):
         """Parse business detail page"""
-        item = YelpspiderItem()
-        item['url'] = response.url
-        safe_set(item, 'name', response,
-                 '.biz-page-title::text')
-        safe_set(item, 'category', response,
-                 '.category-str-list a::text')
+        l = YelpspiderItemLoader(response=response)
+        l.add_value('url', response.url)
+        l.add_xpath('biz_id', '//meta[@name="yelp-biz-id"]/@content')
 
-        rating = safe_get(response,
-                          '.biz-rating img::attr(alt)')
+        ldjson = json.loads(response.xpath(
+            '//script[@type="application/ld+json"]/text()').extract()[0])
+
+        l.add_value('name', ldjson['name'])
+
+        addr_info = ldjson.get('address', {})
+        l.add_value('address', ', '.join(map(
+            lambda x: addr_info.get(x) or '',
+            ['streetAddress', 'addressLocality', 'addressRegion'])))
+
+        rating = ldjson.get('aggregateRating', {}).get('ratingValue')
         if rating:
             try:
-                item['rating'] = float(rating.split()[0])
+                l.add_value('rating', float(rating))
             except Exception:
                 logging.exception("extracting rating from '%s'" % rating)
 
-        price_range = safe_get(response,
-                               '.business-attribute.price-range::text')
-
+        price_range = ldjson.get('priceRange')
         if price_range:
             try:
-                item['price_range'] = price_range.count('$')
+                l.add_value('price_range', price_range.count('$'))
             except Exception:
                 logging.exception("extracting price range from '%s'"
                                   % price_range)
+
+        l.add_css('categories', '.category-str-list a::text', set)
 
         map_json = safe_get(response, '.lightbox-map::attr(data-map-state)')
         if map_json:
             try:
                 map_data = json.loads(map_json)
                 coords = map_data['markers']['starred_business']['location']
-                item['latitude'] = coords['latitude']
-                item['longitude'] = coords['longitude']
+                l.add_value('latitude', coords['latitude'])
+                l.add_value('longitude', coords['longitude'])
             except Exception:
                 logging.exception("extracting location from:\n%s" % map_json)
 
-        return item
+        return l.load_item()
