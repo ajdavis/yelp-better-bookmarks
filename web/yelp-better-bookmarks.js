@@ -18,7 +18,6 @@ window.onload = function () {
     new google.maps.Point(9, 34)   // anchor offset
   );
 
-
   // A function to create the marker and set up the event window
   function createMarker(latlng, name, html, bizid) {
     var contentString = html;
@@ -41,6 +40,33 @@ window.onload = function () {
       updateActiveBookmark();
       return false;
     });
+  }
+
+  function clusterForBizid(bizid) {
+    var clusters = markerClusterer.getClusters();
+    for (var i = 0, l = clusters.length; i < l; i++) {
+      for (var j = 0, le = clusters[i].markers_.length; j < le; j++) {
+        if (clusters[i].markers_[j].bizid === bizid) {
+          return clusters[i];
+        }
+      }
+    }
+  }
+
+  function fixupInfoWindow() {
+    if (activeBizid) {
+      var gm = bizid2gmarker[activeBizid];
+      if (gm.map) {
+        infowindow.open(map, gm);
+      } else {
+        // hidden by the MarkerClusterer - attach info window to cluster
+        var cluster = clusterForBizid(activeBizid);
+        if (cluster) {
+          infowindow.setPosition(cluster.getCenter());
+          infowindow.open(map);
+        }
+      }
+    }
   }
 
   // == rebuilds the sidebar to match the markers currently displayed ==
@@ -90,7 +116,21 @@ window.onload = function () {
       var bizid = a.attr('bizid');
 
       var gm = bizid2gmarker[bizid];
-      google.maps.event.trigger(gm, "click");
+      if (gm.map) {
+        // calls updateActiveBookmark
+        google.maps.event.trigger(gm, "click");
+      } else {
+        // hidden by the MarkerClusterer - zoom into the cluster
+        var cluster = clusterForBizid(bizid);
+        var clusterBounds = cluster.getBounds();
+        setTimeout(function () {
+          map.setZoom(14);
+          map.fitBounds(clusterBounds);
+
+          // calls updateActiveBookmark
+          google.maps.event.trigger(gm, "click");
+        }, 100);
+      }
 
       return false;
     });
@@ -164,6 +204,7 @@ window.onload = function () {
     // Fired when the map becomes idle after panning or zooming.
     google.maps.event.addListener(map, 'idle', function () {
       makeSidebar();
+      fixupInfoWindow();
     });
 
     // Read the data
@@ -189,6 +230,10 @@ window.onload = function () {
           gridSize: 30,
           minimumClusterSize: 10
         });
+
+      google.maps.event.addListener(markerClusterer, 'clusteringend', function () {
+        fixupInfoWindow();
+      });
     });
 
     var locationButton = $('#my-location');
