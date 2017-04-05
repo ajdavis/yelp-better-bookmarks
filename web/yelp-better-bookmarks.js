@@ -69,9 +69,35 @@ window.onload = function () {
     }
   }
 
+  function offsetLatPixels(latlng, offsety) {
+    // latlng is the apparent centre-point
+    // offsetx is the distance you want that point to move to the right, in pixels
+    // offsety is the distance you want that point to move upwards, in pixels
+    // offset can be negative
+    // offsetx and offsety are both optional
+
+    var scale = Math.pow(2, map.getZoom());
+    var pxPoint = map.getProjection().fromLatLngToPoint(latlng);
+    var pxOffset = new google.maps.Point(0, (offsety / scale) || 0);
+    var worldCoordsPoint = new google.maps.Point(
+      pxPoint.x - pxOffset.x,
+      pxPoint.y + pxOffset.y);
+
+    return map.getProjection().fromPointToLatLng(worldCoordsPoint);
+  }
+
   // == rebuilds the sidebar to match the markers currently displayed ==
   function makeSidebar() {
     var bounds = map.getBounds();
+    // A marker's top can peek above the lower edge of the map, but because it's
+    // not within bounds its bookmark isn't added to the sidebar.
+
+    var newSouthWest = offsetLatPixels(
+      bounds.getSouthWest(),
+      34 /* marker height */);
+
+    bounds = bounds.extend(newSouthWest);
+
     var distanceAndMarkers = [];
     var html = "";
 
