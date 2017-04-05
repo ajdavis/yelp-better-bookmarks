@@ -1,5 +1,6 @@
 window.onload = function () {
   var gmarkers = [];
+  var bizid2info = {};
   var bizid2gmarker = {};
   var activeBizid = null;
   var map = null;
@@ -89,42 +90,48 @@ window.onload = function () {
   // == rebuilds the sidebar to match the markers currently displayed ==
   function makeSidebar() {
     var bounds = map.getBounds();
+
     // A marker's top can peek above the lower edge of the map, but because it's
     // not within bounds its bookmark isn't added to the sidebar.
-
     var newSouthWest = offsetLatPixels(
       bounds.getSouthWest(),
       34 /* marker height */);
 
     bounds = bounds.extend(newSouthWest);
 
-    var distanceAndMarkers = [];
+    var ratingsAndMarkers = [];
+    var bizid;
+    var bizinfo;
     var html = "";
 
     for (var i = 0; i < gmarkers.length; i++) {
       var gm = gmarkers[i];
+      bizid = gm.bizid;
+      bizinfo = bizid2info[bizid];
 
       if (bounds.contains(gm.getPosition())) {
-        var d = google.maps.geometry.spherical.computeDistanceBetween(
-          map.center, gm.getPosition());
-
-        distanceAndMarkers.push([d, gm]);
+        ratingsAndMarkers.push([bizinfo['rating'], gm]);
       }
     }
 
-    distanceAndMarkers.sort();
-
-    for (i = 0; i < distanceAndMarkers.length; i++) {
-      gm = distanceAndMarkers[i][1];
-      var bizid = gm.bizid;
-      var bizinfo = null;
-      // TODO: efficiently
-      for (var j = 0; j < data.length; j++) {
-        if (data[j]['bizid'] === gm.bizid) {
-          bizinfo = data[j];
-          break;
-        }
+    // highest-rated first
+    ratingsAndMarkers.sort(function (a, b) {
+      var ratingA = a[0], ratingB = b[0];
+      if (isNaN(ratingA)) {
+        return 1;
       }
+
+      if (isNaN(ratingB)) {
+        return -1;
+      }
+
+      return ratingB - ratingA;
+    });
+
+    for (i = 0; i < ratingsAndMarkers.length; i++) {
+      gm = ratingsAndMarkers[i][1];
+      bizid = gm.bizid;
+      bizinfo = bizid2info[bizid];
 
       html += '<a href="#" class="list-group-item" bizid="' + bizid + '">'
         + '<strong>' + bizinfo['name'] + '</strong> '
@@ -245,6 +252,7 @@ window.onload = function () {
         var name = data[i]["name"];
         var bizid = data[i]["bizid"];
         var html = '<a href="' + data[i]['url'] + '" target="_blank"><b>' + name + '<\/b></a>';
+        bizid2info[bizid] = data[i];
         createMarker(point, name, html, bizid);
       }
 
