@@ -5,6 +5,19 @@ html, body {
   padding: 0;
 }
 
+::-webkit-input-placeholder {
+  color: #aaa;
+}
+::-moz-placeholder {
+  color: #aaa;
+}
+:-ms-input-placeholder {
+  color: #aaa;
+}
+:-o-input-placeholder {
+  color: #aaa;
+}
+
 .list-group-item {
   white-space: nowrap;
   overflow: hidden;
