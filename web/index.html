@@ -22,9 +22,15 @@
   <nav class="navbar navbar-default">
     <div id="navbar">
       <ul class="nav navbar-nav">
-        <li id="search"><label>Filter: <input type="text"></label></li>
-        <li><a href="#" id="my-location" title="Go to my location"><i
-          class="material-icons">my_location</i></a></li>
+        <li id="geocode"><label><span class="input-label" style="width: 50px; display: inline-block;">Go to: </span><input type="text"></label></li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="#" id="my-location" title="Go to my location">
+          <i class="material-icons">my_location</i></a>
+        </li>
+      </ul>
+      <ul class="nav navbar-nav">
+        <li id="search"><label><span class="input-label" style="width: 50px; display: inline-block;">Filter: </span><input type="text"></label></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li><a href="#" id="about">About</a></li>
@@ -46,6 +52,27 @@
       </div>
       <div class="modal-body">
         Sorry, location services unavailable
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" tabindex="-1" role="dialog" id="geocode-failed">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"
+                aria-label="Close"><span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="modal-title">Couldn't find location</h4>
+      </div>
+      <div class="modal-body">
+
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">

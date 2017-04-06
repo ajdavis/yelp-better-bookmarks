@@ -4,6 +4,7 @@ window.onload = function () {
   var bizid2gmarker = {};
   var activeBizid = null;
   var map = null;
+  var geocoder = null;
   var data = null;
   var infowindow = new google.maps.InfoWindow(
     {
@@ -240,6 +241,8 @@ window.onload = function () {
       fixupInfoWindow();
     });
 
+    geocoder = new google.maps.Geocoder();
+
     // Read the data
     $.getJSON("yelp-bookmarks.json", function (j) {
       data = j;
@@ -302,6 +305,27 @@ window.onload = function () {
     $('#bookmarks').sieve({
       itemSelector: "a.list-group-item",
       searchInput: $("#search").find("input")
+    });
+
+    var geocodeInput = $('#geocode').find('input');
+    geocodeInput.keydown(function (e) {
+      if (e.keyCode === 13) {
+        geocoder.geocode(
+          {address: geocodeInput.val()},
+          function (results, status) {
+            if (status === 'OK') {
+              map.setCenter(results[0].geometry.location);
+              infowindow.setPosition(results[0].geometry.location);
+              infowindow.setContent(results[0].formatted_address);
+              infowindow.open(map);
+            } else {
+              var geocodeFailed = $('#geocode-failed');
+              geocodeFailed.find('.modal-body').text(status);
+              geocodeFailed.modal('show');
+            }
+          }
+        );
+      }
     });
   }
 
