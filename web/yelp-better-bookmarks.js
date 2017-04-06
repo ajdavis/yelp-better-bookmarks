@@ -12,6 +12,8 @@ window.onload = function () {
       disableAutoPan: true
     });
 
+  var maxBookmarks = 150;
+
   var markerClusterer = null;
   var gicon = new google.maps.MarkerImage(
     "imgs/marker_green.png",
@@ -129,7 +131,7 @@ window.onload = function () {
       return ratingB - ratingA;
     });
 
-    for (i = 0; i < ratingsAndMarkers.length; i++) {
+    for (i = 0; i < ratingsAndMarkers.length && i < maxBookmarks; i++) {
       gm = ratingsAndMarkers[i][1];
       bizid = gm.bizid;
       bizinfo = bizid2info[bizid];
@@ -142,6 +144,11 @@ window.onload = function () {
         + categoriesText(bizinfo['categories'])
         + '<i class="goto-yelp material-icons" title="Open in Yelp" yelp-url="' + bizinfo['url'] + '">open_in_new</i>'
         + '</a>';
+    }
+
+    if (ratingsAndMarkers.length > maxBookmarks) {
+      html += '<div class="list-group-item">' + (ratingsAndMarkers.length - maxBookmarks) + ' bookmarks'
+        + ' not listed, zoom in for more.</div>';
     }
 
     var bookmarks = $("#bookmarks").html(html).find('a');
