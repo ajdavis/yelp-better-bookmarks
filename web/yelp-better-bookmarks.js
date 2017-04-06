@@ -220,8 +220,8 @@ window.onload = function () {
 
   function initialize() {
     var myOptions = {
-      zoom: 9,
-      center: new google.maps.LatLng(51.76229204540854, -0.5259507324218515),
+      zoom: 11,
+      center: new google.maps.LatLng(40.7575067, -73.9877717),
       mapTypeId: google.maps.MapTypeId.ROADMAP
     };
 
