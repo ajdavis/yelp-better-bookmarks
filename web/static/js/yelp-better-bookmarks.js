@@ -230,7 +230,14 @@ window.onload = function () {
     var myOptions = {
       zoom: 11,
       center: new google.maps.LatLng(40.7575067, -73.9877717),
-      mapTypeId: google.maps.MapTypeId.ROADMAP
+      mapTypeId: google.maps.MapTypeId.ROADMAP,
+      styles: [{
+        featureType: "poi", /* hide points of interest */
+        elementType: "labels",
+        stylers: [
+          {visibility: "off"}
+        ]
+      }]
     };
 
     map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
