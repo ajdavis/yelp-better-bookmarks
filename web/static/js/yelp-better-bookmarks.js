@@ -16,7 +16,7 @@ window.onload = function () {
 
   var markerClusterer = null;
   var gicon = new google.maps.MarkerImage(
-    "imgs/marker_green.png",
+    "static/imgs/marker_green.png",
     new google.maps.Size(20, 34),  // size
     new google.maps.Point(0, 0),   // origin
     new google.maps.Point(9, 34)   // anchor offset
@@ -251,7 +251,7 @@ window.onload = function () {
     geocoder = new google.maps.Geocoder();
 
     // Read the data
-    $.getJSON("yelp-bookmarks.json", function (j) {
+    $.getJSON("/static/data/yelp-bookmarks.json", function (j) {
       data = j;
 
       // markers
@@ -268,7 +268,7 @@ window.onload = function () {
 
       markerClusterer = new MarkerClusterer(
         map, gmarkers, {
-          imagePath: 'imgs/cluster',
+          imagePath: 'static/imgs/cluster',
           imageSizes: [34],
           averageCenter: true,
           gridSize: 30,
