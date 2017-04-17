@@ -302,13 +302,18 @@ window.onload = function () {
 
         pulsate();
 
-        navigator.geolocation.getCurrentPosition(function (position) {
-          locationButton.stop();
-          pulsating = false;
-          map.setCenter(new google.maps.LatLng(
-            position.coords.latitude,
-            position.coords.longitude));
-        });
+        navigator.geolocation.getCurrentPosition(
+          function (position) {
+            locationButton.stop();
+            pulsating = false;
+            map.setCenter(new google.maps.LatLng(
+              position.coords.latitude,
+              position.coords.longitude));
+          }, function (error) {
+            var locationFailed = $('#location-failed');
+            locationFailed.find('.modal-body').text(error.message);
+            locationFailed.modal('show');
+          });
       } else {
         $('#location-disabled').modal('show');
       }
