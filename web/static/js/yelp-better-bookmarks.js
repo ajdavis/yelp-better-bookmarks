@@ -12,6 +12,9 @@ window.onload = function () {
       disableAutoPan: true
     });
 
+  var client = new baas.BaasClient('yelp-better-bookmarks-ppuyr');
+  var mdb = client.service('mongodb', 'mdb');
+
   var maxBookmarks = 150;
 
   var markerClusterer = null;
@@ -258,34 +261,35 @@ window.onload = function () {
     geocoder = new google.maps.Geocoder();
 
     // Read the data
-    $.getJSON("/static/data/yelp-bookmarks.json", function (j) {
-      data = j;
+    mdb.db('yelp').collection('bookmarks').find()
+      .then(function(j) {
+        data = j;
 
-      // markers
-      for (var i = 0; i < data.length; i++) {
-        var lat = parseFloat(data[i]["latitude"]);
-        var lng = parseFloat(data[i]["longitude"]);
-        var point = new google.maps.LatLng(lat, lng);
-        var name = data[i]["name"];
-        var bizid = data[i]["bizid"];
-        var html = '<a href="' + data[i]['url'] + '" target="_blank"><b>' + name + '<\/b></a>';
-        bizid2info[bizid] = data[i];
-        createMarker(point, name, html, bizid);
-      }
+        // markers
+        for (var i = 0; i < data.length; i++) {
+          var lat = parseFloat(data[i]["latitude"]);
+          var lng = parseFloat(data[i]["longitude"]);
+          var point = new google.maps.LatLng(lat, lng);
+          var name = data[i]["name"];
+          var bizid = data[i]["bizid"];
+          var html = '<a href="' + data[i]['url'] + '" target="_blank"><b>' + name + '<\/b></a>';
+          bizid2info[bizid] = data[i];
+          createMarker(point, name, html, bizid);
+        }
 
-      markerClusterer = new MarkerClusterer(
-        map, gmarkers, {
-          imagePath: 'static/imgs/cluster',
-          imageSizes: [34],
-          averageCenter: true,
-          gridSize: 30,
-          minimumClusterSize: 10
+        markerClusterer = new MarkerClusterer(
+          map, gmarkers, {
+            imagePath: 'static/imgs/cluster',
+            imageSizes: [34],
+            averageCenter: true,
+            gridSize: 30,
+            minimumClusterSize: 10
+          });
+
+        google.maps.event.addListener(markerClusterer, 'clusteringend', function () {
+          fixupInfoWindow();
         });
-
-      google.maps.event.addListener(markerClusterer, 'clusteringend', function () {
-        fixupInfoWindow();
       });
-    });
 
     var locationButton = $('#my-location');
     locationButton.click(function () {
@@ -348,5 +352,7 @@ window.onload = function () {
     });
   }
 
-  initialize();
+  // log-in anonymously to BaaS app
+  client.authManager.anonymousAuth(true)
+    .then(function() { initialize(); });
 };
